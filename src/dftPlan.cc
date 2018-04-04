@@ -6,8 +6,9 @@ void dftPlan::Destructor(napi_env env, void *native, void *hint)
     dftPlan *obj = static_cast<dftPlan *>(native);
     if (!obj->isInJs)
         return;
-    N_OK(napi_delete_reference(env, obj->getIn()));
-    N_OK(napi_delete_reference(env, obj->getOut()));
+    N_OK(napi_delete_reference(env, obj->jsIn));
+    N_OK(napi_delete_reference(env, obj->jsOut));
+    N_OK(napi_delete_reference(env, obj->jsthis));
     delete obj;
 }
 #define ARGC 4
@@ -46,7 +47,7 @@ napi_value dftPlan::New(napi_env env, napi_callback_info info)
         N_OK(napi_get_value_uint32(env, tmp, &size[i]));
     }
     dftPlan *obj = new dftPlan(env, isReal, dim, size, sign, flags);
-    N_OK(napi_wrap(env, jsthis, reinterpret_cast<void *>(obj), basePlan::Destructor, nullptr, nullptr));
+    N_OK(napi_wrap(env, jsthis, reinterpret_cast<void *>(obj), dftPlan::Destructor, nullptr, const_cast<napi_ref *>(&obj->jsthis)));
 
     free(size);
     return jsthis;
@@ -62,7 +63,7 @@ uint32_t dftPlan::calcInSize(uint32_t dim, bool isReal, uint32_t const *size)
 }
 uint32_t dftPlan::calcOutSize(uint32_t dim, bool isReal, uint32_t const *size)
 {
-    uint32_t ret = 1;
+    uint32_t ret = 2; // out is always complex
     for (uint32_t i = 0; i < dim - 1; i++)
         ret *= size[i];
     return ret * (size[dim - 1] / 2 + 1);
@@ -107,6 +108,7 @@ napi_value dftPlan::getIsReal(napi_env env, napi_callback_info info)
 
 napi_ref const &dftPlan::getIn() const { return this->jsIn; }
 napi_ref const &dftPlan::getOut() const { return this->jsOut; }
+napi_ref const &dftPlan::getJsthis() const { return this->jsthis; }
 
 void dftPlan::calc()
 {

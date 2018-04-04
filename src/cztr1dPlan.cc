@@ -9,8 +9,9 @@ void cztr1dPlan::Destructor(napi_env env, void *native, void *hint)
     // dftPlan::Destructor(env, obj->sig, nullptr);
     // dftPlan::Destructor(env, obj->core, nullptr);
     // dftPlan::Destructor(env, obj->idft, nullptr);
-    N_OK(napi_delete_reference(env, obj->getIn()));
-    N_OK(napi_delete_reference(env, obj->getOut()));
+    N_OK(napi_delete_reference(env, obj->jsIn));
+    N_OK(napi_delete_reference(env, obj->jsOut));
+    N_OK(napi_delete_reference(env, obj->jsthis));
     delete obj;
 }
 #define ARGC 7
@@ -47,7 +48,7 @@ napi_value cztr1dPlan::New(napi_env env, napi_callback_info info)
     // I have no idea why do we need so many arguments here.
 
     cztr1dPlan *obj = new cztr1dPlan(env, inSize, outSize, rate, start, stop, sign, flags);
-    N_OK(napi_wrap(env, jsthis, reinterpret_cast<void *>(obj), cztr1dPlan::Destructor, nullptr, nullptr));
+    N_OK(napi_wrap(env, jsthis, reinterpret_cast<void *>(obj), cztr1dPlan::Destructor, nullptr, const_cast<napi_ref *>(&obj->jsthis)));
 
     return jsthis;
 }
@@ -66,6 +67,7 @@ cztr1dPlan::~cztr1dPlan()
 
 napi_ref const &cztr1dPlan::getIn() const { return this->jsIn; }
 napi_ref const &cztr1dPlan::getOut() const { return this->jsOut; }
+napi_ref const &cztr1dPlan::getJsthis() const { return this->jsthis; }
 
 void cztr1dPlan::calc()
 {

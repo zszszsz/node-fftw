@@ -1,7 +1,7 @@
 "use strict";
 
 const fftw = require("./build/Release/fftw");
-const flags = {
+fftw.flags = {
     "FFTW_MEASURE": 0,
     "FFTW_DESTROY_INPUT": 1,
     "FFTW_UNALIGNED": 1 << 1,
@@ -12,3 +12,5 @@ const flags = {
     "FFTW_ESTIMATE": 1 << 6,
     "FFTW_WISDOM_ONLY": 1 << 21
 }
+
+module.exports = fftw;

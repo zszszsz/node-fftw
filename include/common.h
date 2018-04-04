@@ -3,6 +3,7 @@
 #include <node_api.h>
 #include <fftw3.h>
 #include <assert.h>
+#include <iostream>
 
 #define N_OK(status)             \
   do                             \
@@ -49,11 +50,21 @@ static inline napi_ref initTypedArray(napi_env env, uint32_t size)
   node_malloc_double(env, size, &ta);
   return createReference(env, ta);
 }
-static inline double* getTAData(napi_env env, napi_ref ta)
+static inline double *getTAData(napi_env env, napi_ref ta)
 {
-    napi_value arr;
-    void *ret;
-    N_OK(napi_get_reference_value(env, ta, &arr));
-    N_OK(napi_get_typedarray_info(env, arr, nullptr, nullptr, &ret, nullptr, nullptr));
-    return static_cast<double *>(ret);
+  napi_value arr;
+  void *ret;
+  N_OK(napi_get_reference_value(env, ta, &arr));
+  N_OK(napi_get_typedarray_info(env, arr, nullptr, nullptr, &ret, nullptr, nullptr));
+  return static_cast<double *>(ret);
+}
+inline napi_async_work createWork(napi_env env, async_exec exec, async_cb cb, void *data)
+{
+  napi_value hookObject;
+  napi_value hookName;
+  napi_async_work ret;
+  N_OK(napi_create_object(env, &hookObject));
+  N_OK(napi_create_string_utf8(env, "fftwAsyncWork", NAPI_AUTO_LENGTH, &hookName));
+  N_OK(napi_create_async_work(env, hookObject, hookName, exec, cb, data, &ret));
+  return ret;
 }

@@ -15,12 +15,14 @@ class dftPlan : public basePlan
     uint32_t const outSize;
     napi_ref const jsIn;
     napi_ref const jsOut;
+    napi_ref const jsthis;
 
   public:
     bool const isInJs;
 
     virtual napi_ref const &getIn() const;
     virtual napi_ref const &getOut() const;
+    virtual napi_ref const &getJsthis() const;
     double *const in;
     double *const out;
     fftw_plan const plan;
@@ -32,6 +34,7 @@ class dftPlan : public basePlan
           outSize(calcOutSize(dim, isReal, size)),
           jsIn(initTypedArray(env, inSize)),
           jsOut(initTypedArray(env, outSize)),
+          jsthis(0),
           isInJs(true),
           in(getTAData(env, jsIn)),
           out(getTAData(env, jsOut)),
@@ -45,6 +48,7 @@ class dftPlan : public basePlan
           outSize(calcOutSize(dim, isReal, size)),
           jsIn(0),
           jsOut(0),
+          jsthis(0),
           isInJs(false),
           in(fftw_alloc_real(sizeof(double) * inSize)),
           out(fftw_alloc_real(sizeof(double) * outSize)),

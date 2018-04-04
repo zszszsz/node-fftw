@@ -16,6 +16,7 @@ class cztr1dPlan : basePlan
     int const sign;
     napi_ref const jsIn;
     napi_ref const jsOut;
+    napi_ref const jsthis;
     dftPlan *const sig;
     dftPlan *const core;
     dftPlan *const idft;
@@ -25,6 +26,7 @@ class cztr1dPlan : basePlan
 
     virtual napi_ref const &getIn() const;
     virtual napi_ref const &getOut() const;
+    virtual napi_ref const &getJsthis() const;
     double *const in;
     double *const out;
 
@@ -33,6 +35,7 @@ class cztr1dPlan : basePlan
           rate(rate), start(start), stop(stop), sign(sign > 0 ? 1 : -1),
           jsIn(initTypedArray(env, size[0])),      // real
           jsOut(initTypedArray(env, size[1] * 2)), //complex
+          jsthis(0),
           sig(new dftPlan(false, 1, new uint32_t[1]{inSize}, -1, flags)),
           core(new dftPlan(false, 1, new uint32_t[1]{inSize + outSize}, -1, flags)),
           idft(new dftPlan(false, 1, new uint32_t[1]{inSize + outSize}, +1, flags)),
@@ -47,6 +50,7 @@ class cztr1dPlan : basePlan
           rate(rate), start(start), stop(stop), sign(sign > 0 ? 1 : -1),
           jsIn(0),
           jsOut(0),
+          jsthis(0),
           sig(new dftPlan(false, 1, new uint32_t[1]{inSize}, -1, flags)),
           core(new dftPlan(false, 1, new uint32_t[1]{inSize + outSize}, -1, flags)),
           idft(new dftPlan(false, 1, new uint32_t[1]{inSize + outSize}, +1, flags)),
