@@ -31,14 +31,14 @@ class cztr1dPlan : basePlan
     double *const out;
 
     inline cztr1dPlan(napi_env env, uint32_t inSize, uint32_t outSize, double rate, double start, double stop, int sign, uint32_t flags)
-        : basePlan(2, new uint32_t[2]{inSize, outSize}),
+        : basePlan(2, {inSize, outSize}),
           rate(rate), start(start), stop(stop), sign(sign > 0 ? 1 : -1),
           jsIn(initTypedArray(env, size[0])),      // real
           jsOut(initTypedArray(env, size[1] * 2)), //complex
           jsthis(0),
-          sig(new dftPlan(false, 1, new uint32_t[1]{inSize}, -1, flags)),
-          core(new dftPlan(false, 1, new uint32_t[1]{inSize + outSize}, -1, flags)),
-          idft(new dftPlan(false, 1, new uint32_t[1]{inSize + outSize}, +1, flags)),
+          sig(new dftPlan(false, 1, {inSize, 0}, -1, flags)),
+          core(new dftPlan(false, 1, {inSize + outSize, 0}, -1, flags)),
+          idft(new dftPlan(false, 1, {inSize + outSize, 0}, +1, flags)),
           isInJs(true),
           in(getTAData(env, jsIn)),
           out(getTAData(env, jsOut))
@@ -46,14 +46,14 @@ class cztr1dPlan : basePlan
     {
     }
     inline cztr1dPlan(uint32_t inSize, uint32_t outSize, double rate, double start, double stop, int sign, uint32_t flags)
-        : basePlan(2, new uint32_t[2]{inSize, outSize}),
+        : basePlan(2, {inSize, outSize}),
           rate(rate), start(start), stop(stop), sign(sign > 0 ? 1 : -1),
           jsIn(0),
           jsOut(0),
           jsthis(0),
-          sig(new dftPlan(false, 1, new uint32_t[1]{inSize}, -1, flags)),
-          core(new dftPlan(false, 1, new uint32_t[1]{inSize + outSize}, -1, flags)),
-          idft(new dftPlan(false, 1, new uint32_t[1]{inSize + outSize}, +1, flags)),
+          sig(new dftPlan(false, 1, {inSize}, -1, flags)),
+          core(new dftPlan(false, 1, {inSize + outSize}, -1, flags)),
+          idft(new dftPlan(false, 1, {inSize + outSize}, +1, flags)),
           isInJs(false),
           in(fftw_alloc_real(sizeof(double) * inSize)),      // real
           out(fftw_alloc_real(sizeof(double) * outSize * 2)) // complex

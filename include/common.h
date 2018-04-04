@@ -4,6 +4,7 @@
 #include <fftw3.h>
 #include <assert.h>
 #include <iostream>
+#include <vector>
 
 #define N_OK(status)             \
   do                             \
@@ -23,7 +24,7 @@
 typedef napi_async_execute_callback async_exec;
 typedef napi_async_complete_callback async_cb;
 
-static inline uint32_t const *initArray(uint32_t length, uint32_t const *data)
+static inline uint32_t const *initArray(uint32_t length, std::vector<uint32_t> const data)
 {
   uint32_t *ret = new uint32_t[length];
   for (uint32_t i = 0; i < length; i++)

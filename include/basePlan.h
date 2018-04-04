@@ -13,7 +13,7 @@ public:
   uint32_t const dim;
   uint32_t const *const size;
 
-  inline basePlan(uint32_t dim, uint32_t const *size)
+  inline basePlan(uint32_t dim, std::vector<uint32_t> const size)
       : dim(dim),
         size(initArray(dim, size))
   {

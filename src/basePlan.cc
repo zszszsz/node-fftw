@@ -71,12 +71,12 @@ void basePlan::calcAsyncCallback(napi_env env, napi_status status, void *aw)
 {
     asyncWork *waw = static_cast<asyncWork *>(aw);
     basePlan *data = static_cast<basePlan *>(waw->data);
-    napi_value jsthis;
+    napi_value jsthis[1];
     napi_value callback;
     napi_ref cbref = waw->callback;
-    N_OK(napi_get_reference_value(env, data->getJsthis(), &jsthis));
+    N_OK(napi_get_reference_value(env, data->getJsthis(), &jsthis[0]));
     N_OK(napi_get_reference_value(env, cbref, &callback));
-    N_OK(napi_call_function(env, jsthis, callback, 1, new napi_value[1]{jsthis}, nullptr));
+    N_OK(napi_call_function(env, jsthis[0], callback, 1, jsthis, nullptr));
     N_OK(napi_delete_async_work(env, static_cast<asyncWork *>(aw)->w));
     N_OK(napi_delete_reference(env, cbref));
     delete static_cast<asyncWork *>(aw);

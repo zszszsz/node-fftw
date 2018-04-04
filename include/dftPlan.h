@@ -27,32 +27,32 @@ class dftPlan : public basePlan
     double *const out;
     fftw_plan const plan;
 
-    inline dftPlan(napi_env env, bool isReal, uint32_t dim, uint32_t *size, int sign, uint32_t flags)
+    inline dftPlan(napi_env env, bool isReal, uint32_t dim, std::vector<uint32_t> const size, int sign, uint32_t flags)
         : basePlan(dim, size),
           isReal(isReal),
-          inSize(calcInSize(dim, isReal, size)),
-          outSize(calcOutSize(dim, isReal, size)),
+          inSize(calcInSize(dim, isReal, this->size)),
+          outSize(calcOutSize(dim, isReal, this->size)),
           jsIn(initTypedArray(env, inSize)),
           jsOut(initTypedArray(env, outSize)),
           jsthis(0),
           isInJs(true),
           in(getTAData(env, jsIn)),
           out(getTAData(env, jsOut)),
-          plan(initPlan(isReal, dim, size, in, out, sign, flags))
+          plan(initPlan(isReal, dim, this->size, in, out, sign, flags))
     {
     }
-    inline dftPlan(bool isReal, uint32_t dim, uint32_t *size, int sign, uint32_t flags)
+    inline dftPlan(bool isReal, uint32_t dim, std::vector<uint32_t> const size, int sign, uint32_t flags)
         : basePlan(dim, size),
           isReal(isReal),
-          inSize(calcInSize(dim, isReal, size)),
-          outSize(calcOutSize(dim, isReal, size)),
+          inSize(calcInSize(dim, isReal, this->size)),
+          outSize(calcOutSize(dim, isReal, this->size)),
           jsIn(0),
           jsOut(0),
           jsthis(0),
           isInJs(false),
           in(fftw_alloc_real(sizeof(double) * inSize)),
           out(fftw_alloc_real(sizeof(double) * outSize)),
-          plan(initPlan(isReal, dim, size, in, out, sign, flags))
+          plan(initPlan(isReal, dim, this->size, in, out, sign, flags))
     {
     }
     virtual ~dftPlan();

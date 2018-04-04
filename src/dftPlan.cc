@@ -29,7 +29,6 @@ napi_value dftPlan::New(napi_env env, napi_callback_info info)
 
     bool isReal;
     uint32_t dim;
-    uint32_t *size;
     int sign;
     uint32_t flags;
 
@@ -39,7 +38,7 @@ napi_value dftPlan::New(napi_env env, napi_callback_info info)
     N_OK(napi_get_value_uint32(env, argv[3], &flags));
 
     // receive size
-    size = static_cast<uint32_t *>(malloc(dim * sizeof(uint32_t)));
+    std::vector<uint32_t> size(dim);
     for (uint32_t i = 0; i < dim; i++)
     {
         napi_value tmp;
@@ -49,7 +48,6 @@ napi_value dftPlan::New(napi_env env, napi_callback_info info)
     dftPlan *obj = new dftPlan(env, isReal, dim, size, sign, flags);
     N_OK(napi_wrap(env, jsthis, reinterpret_cast<void *>(obj), dftPlan::Destructor, nullptr, const_cast<napi_ref *>(&obj->jsthis)));
 
-    free(size);
     return jsthis;
 }
 #undef ARGC
