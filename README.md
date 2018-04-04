@@ -8,11 +8,11 @@ You can download fftw from http://www.fftw.org/download.html
 You can install it following http://www.fftw.org/fftw3_doc/Installation-and-Customization.html
 
 ## Functions:
-* discrete FT(dft) using fftw 
+* discrete fourier transform(dft) using fftw 
     * real-to-complex, arbitrary rank
     * complex-to-complex, arbitrary rank
 * inverse dft using fftw, using dft with sign=+1
-* chirp z transform, using 
+* chirp z transform, using [Bluestein's algorithm](https://en.wikipedia.org/wiki/Chirp_Z-transform).
 
 ## Supported flags
 * FFTW_MEASURE

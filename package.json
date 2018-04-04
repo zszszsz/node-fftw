@@ -1,0 +1,24 @@
+{
+  "name": "node-fftw",
+  "version": "1.0.0",
+  "description": "nodejs port for fftw",
+  "gypfile": true,
+  "main": "index.js",
+  "scripts": {
+    "test": "./test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/zszszsz/node-fftw.git"
+  },
+  "keywords": [
+    "fft",
+    "fftw"
+  ],
+  "author": "zszszsz",
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/zszszsz/node-fftw/issues"
+  },
+  "homepage": "https://github.com/zszszsz/node-fftw#readme"
+}
