@@ -75,7 +75,7 @@ void cztr1dPlan::calc()
 {
     // this should be the Bluestein's algorithm, if you find anything wrong here, tell me plz.
     // where w = expi(+/-2pi *(f2 - f1) / (outSize * rate)),
-    double omega = 2.0 * M_PI * (stop - start) / rate / size[1] * sign;
+    double omega = 2.0 * M_PI * (stop - start) / rate / (size[1] - 1) * sign;
     // a = expi(2pi * f1 / rate)
     double alpha = 2.0 * M_PI * start / rate;
 
@@ -95,13 +95,13 @@ void cztr1dPlan::calc()
     }
     for (uint32_t j = totalSize - size[0]; j < totalSize; j++)
     {
-        core[j].real(cos((totalSize - j) * (totalSize - j) / 2.0 / omega));
-        core[j].imag(sin((totalSize - j) * (totalSize - j) / 2.0 / omega));
+        core[j].real(cos((totalSize - j) * (totalSize - j) / 2.0 * omega));
+        core[j].imag(sin((totalSize - j) * (totalSize - j) / 2.0 * omega));
     }
     // signal here
     for (uint32_t j = 0; j < size[0]; j++)
     {
-        double psi = j * alpha + j * j / 2.0 / omega;
+        double psi = j * alpha + j * j / 2.0 * omega;
         double c = cos(psi);
         double s = -sin(psi);
         sig[j].real(c * in[j]);
@@ -119,12 +119,10 @@ void cztr1dPlan::calc()
     core = reinterpret_cast<complex<double> *>(coredft->out);
     complex<double> *inv = reinterpret_cast<complex<double> *>(idft->in);
 
-    for (uint32_t j = 0; j < totalSize / 2; j++)
+    for (uint32_t j = 0; j < totalSize; j++)
     {
         inv[j] = sig[j] * core[j] / (double)totalSize;
-        inv[totalSize - j] = conj(inv[j]);
     }
-    inv[totalSize / 2 + 1] = sig[totalSize / 2 + 1] * core[totalSize / 2 + 1] / (double)totalSize;
 
     idft->calc();
     inv = reinterpret_cast<complex<double> *>(idft->out);
