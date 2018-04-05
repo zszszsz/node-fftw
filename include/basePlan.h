@@ -3,6 +3,8 @@
 #include "common.h"
 #include "asyncWork.h"
 
+namespace node_fftw
+{
 class basePlan
 {
 public:
@@ -13,7 +15,7 @@ public:
   uint32_t const dim;
   uint32_t const *const size;
 
-  inline basePlan(uint32_t dim, std::vector<uint32_t> const size)
+  inline basePlan(uint32_t dim, vector<uint32_t> const size)
       : dim(dim),
         size(initArray(dim, size))
   {
@@ -30,3 +32,4 @@ public:
 
   virtual void calc() = 0;
 };
+}

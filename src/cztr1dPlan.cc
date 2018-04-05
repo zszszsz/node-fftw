@@ -1,5 +1,7 @@
 #include "cztPlan.h"
 
+namespace node_fftw
+{
 void cztr1dPlan::Destructor(napi_env env, void *native, void *hint)
 {
     cztr1dPlan *obj = static_cast<cztr1dPlan *>(native);
@@ -55,8 +57,8 @@ napi_value cztr1dPlan::New(napi_env env, napi_callback_info info)
 #undef ARGC
 cztr1dPlan::~cztr1dPlan()
 {
-    delete this->sig;
-    delete this->core;
+    delete this->sigdft;
+    delete this->coredft;
     delete this->idft;
     if (!isInJs)
     {
@@ -73,51 +75,70 @@ void cztr1dPlan::calc()
 {
     // this should be the Bluestein's algorithm, if you find anything wrong here, tell me plz.
     // where w = expi(+/-2pi *(f2 - f1) / (outSize * rate)),
-    double omega = 2.0 * M_PI * (stop - start) / rate / (size[1] - 1) * sign;
+    double omega = 2.0 * M_PI * (stop - start) / rate / size[1] * sign;
     // a = expi(2pi * f1 / rate)
     double alpha = 2.0 * M_PI * start / rate;
-    uint32_t t = core->size[0];
 
-    // sig is for dft of signal
-    for (uint32_t i = 0; i < size[0]; i++)
+    complex<double> *sig = reinterpret_cast<complex<double> *>(sigdft->in);
+    complex<double> *core = reinterpret_cast<complex<double> *>(coredft->in);
+
+    // set signal and core values, could someone do some optimization here ?
+    for (uint32_t j = 0; j < size[1]; j++)
     {
-        double psi = (double)i * alpha + (double)i * i / 2.0 * omega;
-        // [0] element holds the real part
-        sig->in[2 * i] = cos(psi) * this->in[i];
-        // [1] element holds the imaginary part
-        sig->in[2 * i + 1] = sin(psi) * this->in[i];
+        core[j].real(cos(j * j / 2.0 * omega));
+        core[j].imag(cos(j * j / 2.0 * omega));
     }
-    // core is for dft of the conv core
-    for (uint32_t i = 0; i < size[1]; i++)
+    for (uint32_t j = size[1]; j < totalSize - size[0]; j++)
     {
-        core->in[2 * i] = cos((double)i * i / 2 * omega);
-        core->in[2 * i + 1] = sin((double)i * i / 2 * omega);
+        core[j].real(0);
+        core[j].imag(0);
     }
-    for (uint32_t i = size[1]; i < t; i++)
+    for (uint32_t j = totalSize - size[0]; j < totalSize; j++)
     {
-        core->in[2 * i] = cos((double)(t - i) * (t - i) / 2 * omega);
-        core->in[2 * i + 1] = cos((double)(t - i) * (t - i) / 2 * omega);
+        core[j].real(cos((totalSize - j) * (totalSize - j) / 2.0 / omega));
+        core[j].imag(sin((totalSize - j) * (totalSize - j) / 2.0 / omega));
     }
-    sig->calc();
-    core->calc();
-    for (uint32_t i = 0; i < t; i++)
+    // signal here
+    for (uint32_t j = 0; j < size[0]; j++)
     {
-        // re[Result] = re[Sig] * re[Core] - im[Sig] * im[Core]
-        idft->in[2 * i] = sig->out[2 * i] * core->out[2 * i] -
-                          sig->out[2 * i + 1] * core->out[2 * i + 1];
-        // im[Result] = im[Sig] * re[Core] + re[Sig] * im[Core]
-        idft->in[2 * i + 1] = sig->out[2 * i + 1] * core->out[2 * i] +
-                              sig->out[2 * i] * core->out[2 * i + 1];
-    }
-    idft->calc();
-    // copy result
-    for (uint32_t i = 0; i < size[1]; i++)
-    {
-        double psi = (double)i * i / 2.0 / omega;
+        double psi = j * alpha + j * j / 2.0 / omega;
         double c = cos(psi);
-        double s = sin(psi);
-        this->out[2 * i] = c * idft->out[2 * i] - s * idft->out[2 * i + 1];
-        this->out[2 * i + 1] = s * idft->out[2 * i] + c * idft->out[2 * i + 1];
+        double s = -sin(psi);
+        sig[j].real(c * in[j]);
+        sig[j].imag(s * in[j]);
+    }
+    for (uint32_t j = size[0]; j < totalSize; j++)
+    {
+        sig[j].real(0);
+        sig[j].imag(0);
+    }
+
+    sigdft->calc();
+    coredft->calc();
+    sig = reinterpret_cast<complex<double> *>(sigdft->out);
+    core = reinterpret_cast<complex<double> *>(coredft->out);
+    complex<double> *inv = reinterpret_cast<complex<double> *>(idft->in);
+
+    for (uint32_t j = 0; j < totalSize / 2; j++)
+    {
+        inv[j] = sig[j] * core[j] / (double)totalSize;
+        inv[totalSize - j] = conj(inv[j]);
+    }
+    inv[totalSize / 2 + 1] = sig[totalSize / 2 + 1] * core[totalSize / 2 + 1] / (double)totalSize;
+
+    idft->calc();
+    inv = reinterpret_cast<complex<double> *>(idft->out);
+    complex<double> *out = reinterpret_cast<complex<double> *>(this->out);
+
+    // copy result out
+    for (uint32_t j = 0; j < size[1]; j++)
+    {
+        double psi = j * j / 2.0 * omega;
+        double c = cos(psi);
+        double s = -sin(psi);
+        out[j].real(c * inv[j].real() - s * inv[j].imag());
+        out[j].imag(s * inv[j].real() - c * inv[j].imag());
     }
     return;
+}
 }

@@ -1,5 +1,7 @@
 #include "node-fftw.h"
 
+namespace node_fftw
+{
 napi_value Init(napi_env env, napi_value exports)
 {
     N_OK(napi_set_named_property(env, exports, "dftPlan", dftPlan::Init(env)));
@@ -8,3 +10,4 @@ napi_value Init(napi_env env, napi_value exports)
 }
 
 NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)
+}

@@ -3,6 +3,8 @@
 #include "common.h"
 #include "basePlan.h"
 
+namespace node_fftw
+{
 class dftPlan : public basePlan
 {
   private:
@@ -10,6 +12,8 @@ class dftPlan : public basePlan
     uint32_t calcOutSize(uint32_t dim, bool isReal, uint32_t const *size);
     fftw_plan initPlan(bool isReal, uint32_t dim, uint32_t const *size, double *in, double *out, int sign, uint32_t flags);
 
+  public:
+    bool const isInJs;
     bool const isReal;
     uint32_t const inSize;
     uint32_t const outSize;
@@ -17,39 +21,36 @@ class dftPlan : public basePlan
     napi_ref const jsOut;
     napi_ref const jsthis;
 
-  public:
-    bool const isInJs;
-
-    virtual napi_ref const &getIn() const;
+    virtual napi_ref const &getIn() const; // getters for the basePlan
     virtual napi_ref const &getOut() const;
     virtual napi_ref const &getJsthis() const;
     double *const in;
     double *const out;
     fftw_plan const plan;
 
-    inline dftPlan(napi_env env, bool isReal, uint32_t dim, std::vector<uint32_t> const size, int sign, uint32_t flags)
+    inline dftPlan(napi_env env, bool isReal, uint32_t dim, vector<uint32_t> const size, int sign, uint32_t flags)
         : basePlan(dim, size),
+          isInJs(true),
           isReal(isReal),
           inSize(calcInSize(dim, isReal, this->size)),
           outSize(calcOutSize(dim, isReal, this->size)),
           jsIn(initTypedArray(env, inSize)),
           jsOut(initTypedArray(env, outSize)),
           jsthis(0),
-          isInJs(true),
           in(getTAData(env, jsIn)),
           out(getTAData(env, jsOut)),
           plan(initPlan(isReal, dim, this->size, in, out, sign, flags))
     {
     }
-    inline dftPlan(bool isReal, uint32_t dim, std::vector<uint32_t> const size, int sign, uint32_t flags)
+    inline dftPlan(bool isReal, uint32_t dim, vector<uint32_t> const size, int sign, uint32_t flags)
         : basePlan(dim, size),
+          isInJs(false),
           isReal(isReal),
           inSize(calcInSize(dim, isReal, this->size)),
           outSize(calcOutSize(dim, isReal, this->size)),
           jsIn(0),
           jsOut(0),
           jsthis(0),
-          isInJs(false),
           in(fftw_alloc_real(sizeof(double) * inSize)),
           out(fftw_alloc_real(sizeof(double) * outSize)),
           plan(initPlan(isReal, dim, this->size, in, out, sign, flags))
@@ -78,3 +79,4 @@ class dftPlan : public basePlan
 
     virtual void calc();
 };
+}

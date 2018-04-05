@@ -1,6 +1,9 @@
 #include "dftPlan.h"
 #include <stdlib.h>
 #include <string.h>
+
+namespace node_fftw
+{
 void dftPlan::Destructor(napi_env env, void *native, void *hint)
 {
     dftPlan *obj = static_cast<dftPlan *>(native);
@@ -38,7 +41,7 @@ napi_value dftPlan::New(napi_env env, napi_callback_info info)
     N_OK(napi_get_value_uint32(env, argv[3], &flags));
 
     // receive size
-    std::vector<uint32_t> size(dim);
+    vector<uint32_t> size(dim);
     for (uint32_t i = 0; i < dim; i++)
     {
         napi_value tmp;
@@ -64,7 +67,8 @@ uint32_t dftPlan::calcOutSize(uint32_t dim, bool isReal, uint32_t const *size)
     uint32_t ret = 2; // out is always complex
     for (uint32_t i = 0; i < dim - 1; i++)
         ret *= size[i];
-    return ret * (size[dim - 1] / 2 + 1);
+    return isReal ? ret * (size[dim - 1] / 2 + 1) : ret * size[dim - 1];
+    // in fftw, the size for real number fft is halved
 }
 fftw_plan dftPlan::initPlan(bool isReal, uint32_t dim, uint32_t const *size, double *in, double *out, int sign, uint32_t flags)
 {
@@ -111,4 +115,5 @@ napi_ref const &dftPlan::getJsthis() const { return this->jsthis; }
 void dftPlan::calc()
 {
     fftw_execute(this->plan);
+}
 }

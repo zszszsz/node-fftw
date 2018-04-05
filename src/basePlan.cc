@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+namespace node_fftw
+{
 basePlan::~basePlan()
 {
     delete[] size;
@@ -57,7 +59,7 @@ napi_value basePlan::calcAsync(napi_env env, napi_callback_info info)
     basePlan *obj;
     N_OK(napi_get_cb_info(env, info, &argc, &cb, &jsthis, nullptr));
     N_OK(napi_unwrap(env, jsthis, reinterpret_cast<void **>(&obj)));
-    asyncWork *work = new asyncWork(env, reinterpret_cast<void *>(obj), cb, calcAsyncWorker, calcAsyncCallback);
+    asyncWork *work = new asyncWork(env, jsthis, "node_fftw_calculation", cb, reinterpret_cast<void *>(obj), calcAsyncWorker, calcAsyncCallback);
     N_OK(napi_queue_async_work(env, work->w));
     return nullptr;
 }
@@ -80,4 +82,5 @@ void basePlan::calcAsyncCallback(napi_env env, napi_status status, void *aw)
     N_OK(napi_delete_async_work(env, static_cast<asyncWork *>(aw)->w));
     N_OK(napi_delete_reference(env, cbref));
     delete static_cast<asyncWork *>(aw);
+}
 }

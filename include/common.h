@@ -3,9 +3,13 @@
 #include <node_api.h>
 #include <fftw3.h>
 #include <assert.h>
-#include <iostream>
 #include <vector>
+#include <complex>
+using std::complex;
+using std::vector;
 
+namespace node_fftw
+{
 #define N_OK(status)             \
   do                             \
   {                              \
@@ -24,7 +28,7 @@
 typedef napi_async_execute_callback async_exec;
 typedef napi_async_complete_callback async_cb;
 
-static inline uint32_t const *initArray(uint32_t length, std::vector<uint32_t> const data)
+static inline uint32_t const *initArray(uint32_t length, vector<uint32_t> const data)
 {
   uint32_t *ret = new uint32_t[length];
   for (uint32_t i = 0; i < length; i++)
@@ -59,13 +63,12 @@ static inline double *getTAData(napi_env env, napi_ref ta)
   N_OK(napi_get_typedarray_info(env, arr, nullptr, nullptr, &ret, nullptr, nullptr));
   return static_cast<double *>(ret);
 }
-inline napi_async_work createWork(napi_env env, async_exec exec, async_cb cb, void *data)
+static inline napi_async_work createWork(napi_env env, napi_value hook, char const *name, async_exec exec, async_cb cb, void *data)
 {
-  napi_value hookObject;
   napi_value hookName;
   napi_async_work ret;
-  N_OK(napi_create_object(env, &hookObject));
-  N_OK(napi_create_string_utf8(env, "fftwAsyncWork", NAPI_AUTO_LENGTH, &hookName));
-  N_OK(napi_create_async_work(env, hookObject, hookName, exec, cb, data, &ret));
+  N_OK(napi_create_string_utf8(env, name, NAPI_AUTO_LENGTH, &hookName));
+  N_OK(napi_create_async_work(env, hook, hookName, exec, cb, data, &ret));
   return ret;
+}
 }
