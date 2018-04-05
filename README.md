@@ -36,18 +36,19 @@ dftPlan.calcAsync(function(plan) {
     console.log("dft result", this.out, plan.out);
 });
 ````
-* czt : **`new fftw.cztr1dPlan(inSize, outSize, sampleRate, fstart, fstop, sign, flags)`**
+* czt : **`new fftw.cztr1dPlan(inSize, outSize, sampleRate, fstart, fstop, flags)`**
     * inSize: the size of input buffer, 1d real
     * outSize: the size of output buffer, 1d complex
     * sampleRate: the sample rate
     * fstart: the frequency to start calculation,
     * fstop: the frequency to stop calculation,
-    * sign: the sign of czt omega value,
     * flags: the flags passed to fftw.
+        * we use w = expi(-2pi *(f2 - f1) / (outSize * sampleRate)),
+        * and a = expi(2pi * f1 / sampleRate)
 
 ````js
 const fftw = require("./index.js");
-const cztPlan = new fftw.cztr1dPlan(16, 8, 1, 1, 8, -1, fftw.flags.FFTW_DESTROY_INPUT);
+const cztPlan = new fftw.cztr1dPlan(16, 8, 1, 1, 8, fftw.flags.FFTW_DESTROY_INPUT);
 for(var i = 0; i < 16; i++)
 {
     cztPlan.in[i] = Math.sin(Math.PI / 4 * i) + Math.cos(Math.PI / 4 * i);
@@ -74,6 +75,7 @@ const flags = fftw.flags;
 
 
 ## TODO
+* nodejs implementation for `sid::complex` compatible complex number
 * Testing and bug fix
 * fftw wisdom interface
 * discrete cos transform (DCT)

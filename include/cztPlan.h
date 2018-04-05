@@ -28,13 +28,12 @@ class cztr1dPlan : basePlan
     double const rate;
     double const start;
     double const stop;
-    int const sign;
     uint32_t const totalSize;
     napi_ref const jsIn;
     napi_ref const jsOut;
     napi_ref const jsthis;
     dftPlan *const sigdft;
-    dftPlan *const coredft;
+    dftPlan *const krndft;
     dftPlan *const idft;
 
     virtual napi_ref const &getIn() const;
@@ -43,34 +42,32 @@ class cztr1dPlan : basePlan
     double *const in;
     double *const out;
 
-    inline cztr1dPlan(napi_env env, uint32_t inSize, uint32_t outSize, double rate, double start, double stop, int sign, uint32_t flags)
+    inline cztr1dPlan(napi_env env, uint32_t inSize, uint32_t outSize, double rate, double start, double stop, uint32_t flags)
         : basePlan(2, {inSize, outSize}),
           isInJs(true),
-          rate(rate), start(start), stop(stop), sign(sign > 0 ? 1 : -1),
+          rate(rate), start(start), stop(stop),
           totalSize(nextPow2(inSize + outSize)),
           jsIn(initTypedArray(env, size[0])),      // real
           jsOut(initTypedArray(env, size[1] * 2)), //complex
           jsthis(0),
           sigdft(new dftPlan(false, 1, {totalSize}, -1, flags)),
-          coredft(new dftPlan(false, 1, {totalSize}, -1, flags)),
-          idft(new dftPlan(false, 1, {totalSize}, +1, flags)),
+          krndft(new dftPlan(false, 1, {totalSize}, -1, flags)),
+          idft(new dftPlan(false, 1, {totalSize}, +1, flags)), // using sign=+1 for inverse fourier transform
           in(getTAData(env, jsIn)),
           out(getTAData(env, jsOut))
-    // using sign=+1 for inverse fourier transform
     {
     }
-    inline cztr1dPlan(uint32_t inSize, uint32_t outSize, double rate, double start, double stop, int sign, uint32_t flags)
+    inline cztr1dPlan(uint32_t inSize, uint32_t outSize, double rate, double start, double stop, uint32_t flags)
         : basePlan(2, {inSize, outSize}),
           isInJs(false),
-          rate(rate), start(start), stop(stop), sign(sign > 0 ? 1 : -1),
+          rate(rate), start(start), stop(stop),
           totalSize(nextPow2(inSize + outSize)),
           jsIn(0), jsOut(0), jsthis(0),
           sigdft(new dftPlan(false, 1, {totalSize}, -1, flags)),
-          coredft(new dftPlan(false, 1, {totalSize}, -1, flags)),
-          idft(new dftPlan(false, 1, {totalSize}, +1, flags)),
-          in(fftw_alloc_real(sizeof(double) * inSize)),      // real
-          out(fftw_alloc_real(sizeof(double) * outSize * 2)) // complex
-    // using sign=+1 for inverse fourier transform
+          krndft(new dftPlan(false, 1, {totalSize}, -1, flags)),
+          idft(new dftPlan(false, 1, {totalSize}, +1, flags)), // using sign=+1 for inverse fourier transform
+          in(fftw_alloc_real(sizeof(double) * inSize)),        // real
+          out(fftw_alloc_real(sizeof(double) * outSize * 2))   // complex
     {
     }
     virtual ~cztr1dPlan();
