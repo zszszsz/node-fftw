@@ -11,7 +11,7 @@ dftPlan.calcAsync(function () {
     /*correctness check for dft, but it seems that we dont need it.*/
 });
 
-const cztPlan = new fftw.cztr1dPlan(16, 8, 1, 1, 8, fftw.flags.FFTW_DESTROY_INPUT);
+const cztPlan = new fftw.cztr1dPlan(16, 8, 8, 1, 8, fftw.flags.FFTW_DESTROY_INPUT);
 
 for (var i = 0; i < 16; i++) {
     cztPlan.in[i] = Math.sin(Math.PI / 4 * i)// + Math.cos(Math.PI / 4 * i);
